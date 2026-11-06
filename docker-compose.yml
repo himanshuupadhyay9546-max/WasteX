@@ -1,0 +1,185 @@
+services:
+  # ---------------------------------------------------------------------------
+  # 1. DATABASE: PostgreSQL 16 + PostGIS + TimescaleDB
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: ecoroute-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ecoroute}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ecoroute_secure_pass_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-ecoroute_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/01_init_postgis_timescale.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./infra/postgres/02_seed_data.sql:/docker-entrypoint-initdb.d/02_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ecoroute} -d ${POSTGRES_DB:-ecoroute_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # 2. CACHE & QUEUE: Redis
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: ecoroute-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # 3. MQTT BROKER: Eclipse Mosquitto
+  # ---------------------------------------------------------------------------
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: ecoroute-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+
+  # ---------------------------------------------------------------------------
+  # 4. S3 OBJECT STORAGE: MinIO (Self-hosted)
+  # ---------------------------------------------------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: ecoroute-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-miniopassword2026}
+    ports:
+      - "9000:9000"
+      - "9002:9001"
+    volumes:
+      - minio_data:/data
+
+  # ---------------------------------------------------------------------------
+  # 5. CORE API BACKEND: FastAPI + Uvicorn + Pydantic v2
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: ecoroute-api
+    restart: unless-stopped
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-ecoroute}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-ecoroute_secure_pass_2026}
+      - POSTGRES_DB=${POSTGRES_DB:-ecoroute_db}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MQTT_BROKER_HOST=mosquitto
+      - MQTT_BROKER_PORT=1883
+      - ROUTER_SERVICE_URL=http://router:8001
+      - ML_SERVICE_URL=http://ml-worker:8002
+      - MINIO_ENDPOINT=minio:9000
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+
+  # ---------------------------------------------------------------------------
+  # 6. ROUTE ENGINE: Google OR-Tools Time-Dependent VRPTW
+  # ---------------------------------------------------------------------------
+  router:
+    build:
+      context: .
+      dockerfile: services/router/Dockerfile
+    container_name: ecoroute-router
+    restart: unless-stopped
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8001:8001"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # 7. ML & COMPUTER VISION WORKER: ONNX / YOLOv8 & Forecasting
+  # ---------------------------------------------------------------------------
+  ml-worker:
+    build:
+      context: .
+      dockerfile: services/ml/Dockerfile
+    container_name: ecoroute-ml-worker
+    restart: unless-stopped
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8002:8002"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # 8. WEB DASHBOARD: Next.js 14 + MapLibre GL + TailwindCSS
+  # ---------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: ecoroute-web
+    restart: unless-stopped
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_MQTT_WS_URL=ws://localhost:9001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+  # ---------------------------------------------------------------------------
+  # 9. IOT SIMULATOR: 500 Smart Bins + Live Truck GPS Simulation
+  # ---------------------------------------------------------------------------
+  simulator:
+    build:
+      context: .
+      dockerfile: data/Dockerfile
+    container_name: ecoroute-simulator
+    restart: unless-stopped
+    environment:
+      - MQTT_BROKER_HOST=mosquitto
+      - MQTT_BROKER_PORT=1883
+      - API_BASE_URL=http://api:8000
+      - SIMULATOR_NUM_BINS=500
+      - SIMULATOR_INTERVAL_SECONDS=5
+    depends_on:
+      api:
+        condition: service_started
+      mosquitto:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  redis_data:
+  mosquitto_data:
+  mosquitto_log:
+  minio_data:

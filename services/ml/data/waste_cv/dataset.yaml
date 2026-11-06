@@ -1,0 +1,22 @@
+path: C:/Users/hkup9/OneDrive/Desktop/My projects/WasteX+/services/ml/data/waste_cv
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: plastic_bottles
+  1: cardboard_packaging
+  2: wet_organic_mandi
+  3: mixed_scrap_metal
+  4: construction_debris
+  5: illegal_dump_pile
+
+# TACO + TrashNet + Roboflow Benchmark Classes
+metadata:
+  total_annotated_instances: 4820
+  volumetric_density_kg_m3:
+    plastic_bottles: 65.0
+    cardboard_packaging: 120.0
+    wet_organic_mandi: 450.0
+    construction_debris: 1250.0
+    illegal_dump_pile: 320.0

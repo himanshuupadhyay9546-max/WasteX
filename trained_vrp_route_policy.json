@@ -1,0 +1,31 @@
+{
+  "version": "2.4.0-production",
+  "updated_at": "2026-10-01T01:10:00Z",
+  "solver": "Capacitated-VRP-With-Traffic-Penalty-Engine",
+  "dataset_source": "Bhopal_OSM_Road_Network",
+  "fleet_routing": {
+    "EV-01": {
+      "vehicle_type": "Electric (Tata Ace EV)",
+      "distance_reduction_km": 9.5,
+      "pct_distance_saved": 32.5,
+      "delay_minutes_saved": 61,
+      "co2_saved_kg": 18.2
+    },
+    "TRK-02": {
+      "vehicle_type": "Diesel Compactor (BharatBenz 1217)",
+      "distance_reduction_km": 7.3,
+      "pct_distance_saved": 28.7,
+      "delay_minutes_saved": 51,
+      "fuel_saved_liters": 4.2,
+      "cost_saved_inr": 394.0
+    },
+    "TRK-03": {
+      "vehicle_type": "CNG Tipper (Mahindra Bolero)",
+      "distance_reduction_km": 6.6,
+      "pct_distance_saved": 30.8,
+      "delay_minutes_saved": 22,
+      "cng_saved_kg": 2.8,
+      "cost_saved_inr": 245.0
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "wastex-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@12.6.0",
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "dev:dashboard": "pnpm --filter @wastex/dashboard dev",
+    "dev:driver": "pnpm --filter @wastex/driver dev",
+    "dev:citizen": "pnpm --filter @wastex/citizen dev",
+    "dev:api": "pnpm --filter @wastex/api-gateway dev",
+    "dev:iot": "pnpm --filter @wastex/iot-ingestion dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

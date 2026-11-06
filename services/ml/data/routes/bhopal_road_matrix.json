@@ -1,0 +1,37 @@
+{
+  "MP_NAGAR_Z1": {
+    "lat": 23.234,
+    "lng": 77.432,
+    "name": "MP Nagar Zone 1 Commercial"
+  },
+  "DB_CITY_MALL": {
+    "lat": 23.231,
+    "lng": 77.435,
+    "name": "DB City Mall Gate 2"
+  },
+  "BITTAN_MARKET": {
+    "lat": 23.221,
+    "lng": 77.429,
+    "name": "Bittan Market Vegetable Mandi"
+  },
+  "TEN_NO_MARKET": {
+    "lat": 23.213,
+    "lng": 77.437,
+    "name": "10 No. Market Square"
+  },
+  "SHAHPURA_LAKE": {
+    "lat": 23.205,
+    "lng": 77.42,
+    "name": "Shahpura Lake Promenade"
+  },
+  "CHUNABHATTI": {
+    "lat": 23.212,
+    "lng": 77.428,
+    "name": "Chunabhatti Main Bazaar"
+  },
+  "KOLAR_ROAD": {
+    "lat": 23.208,
+    "lng": 77.414,
+    "name": "Kolar Road Chauraha"
+  }
+}

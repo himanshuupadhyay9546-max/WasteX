@@ -1,0 +1,16 @@
+{
+  "dataset": "TACO_TrashNet_Bhopal_Composite_v2",
+  "classes": [
+    "plastic_bottles",
+    "cardboard_packaging",
+    "wet_organic_mandi",
+    "mixed_scrap_metal",
+    "construction_debris",
+    "illegal_dump_pile"
+  ],
+  "images_count": 2840,
+  "annotations_count": 6420,
+  "mAP50_benchmark": 0.894,
+  "volumetric_accuracy_pct": 91.7,
+  "yaml_config": "C:\\Users\\hkup9\\OneDrive\\Desktop\\My projects\\WasteX+\\services\\ml\\data\\waste_cv\\dataset.yaml"
+}
